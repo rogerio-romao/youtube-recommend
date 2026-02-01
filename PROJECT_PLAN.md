@@ -2,25 +2,28 @@
 
 ## Overview
 
-A Nuxt 3 web app that analyzes your YouTube subscriptions and liked videos, uses AI to categorize your tastes, and recommends new channels.
+A Nuxt 4 web app that analyzes your YouTube subscriptions and liked videos, uses
+AI to categorize your tastes, and recommends new channels.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Nuxt 3 |
-| Frontend | Vue 3 (Composition API), plain CSS |
-| Database | SQLite + Drizzle ORM |
-| Auth | Google OAuth 2.0 (YouTube Data API v3) |
-| LLM | GitHub Models (default), OpenAI, Anthropic, Ollama (configurable via env) |
-| Language | TypeScript |
-| Deployment | Local-first, cloud-ready |
+| Layer      | Technology                                                                |
+| ---------- | ------------------------------------------------------------------------- |
+| Framework  | Nuxt 4                                                                    |
+| Frontend   | Vue 3 (Composition API), plain CSS                                        |
+| Database   | SQLite + Drizzle ORM                                                      |
+| Auth       | Google OAuth 2.0 (YouTube Data API v3)                                    |
+| LLM        | GitHub Models (default), OpenAI, Anthropic, Ollama (configurable via env) |
+| Language   | TypeScript                                                                |
+| Deployment | Local-first, cloud-ready                                                  |
 
 ## MVP Features (Phase 1)
 
-1. **Channel Recommendations** - "Based on your tastes, you might like these channels"
+1. **Channel Recommendations** - "Based on your tastes, you might like these
+   channels"
 2. **Hidden Gems** - Surface smaller/underrated channels in categories you enjoy
-3. **Content Gaps** - Identify topics you'd probably like but have zero subscriptions in
+3. **Content Gaps** - Identify topics you'd probably like but have zero
+   subscriptions in
 
 ## Future Features (Phase 2+)
 
@@ -110,62 +113,67 @@ youtube-recommend/
 ## Database Schema
 
 ### users
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| google_id | text | Unique Google ID |
-| email | text | User email |
-| name | text | Display name |
-| avatar_url | text | Profile picture |
-| created_at | timestamp | Creation date |
-| updated_at | timestamp | Last update |
+
+| Column     | Type      | Description      |
+| ---------- | --------- | ---------------- |
+| id         | integer   | Primary key      |
+| google_id  | text      | Unique Google ID |
+| email      | text      | User email       |
+| name       | text      | Display name     |
+| avatar_url | text      | Profile picture  |
+| created_at | timestamp | Creation date    |
+| updated_at | timestamp | Last update      |
 
 ### subscriptions
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| user_id | integer | Foreign key to users |
-| channel_id | text | YouTube channel ID |
-| channel_title | text | Channel name |
-| channel_thumbnail | text | Thumbnail URL |
-| subscriber_count | integer | Subscriber count |
-| video_count | integer | Number of videos |
-| fetched_at | timestamp | When data was fetched |
+
+| Column            | Type      | Description           |
+| ----------------- | --------- | --------------------- |
+| id                | integer   | Primary key           |
+| user_id           | integer   | Foreign key to users  |
+| channel_id        | text      | YouTube channel ID    |
+| channel_title     | text      | Channel name          |
+| channel_thumbnail | text      | Thumbnail URL         |
+| subscriber_count  | integer   | Subscriber count      |
+| video_count       | integer   | Number of videos      |
+| fetched_at        | timestamp | When data was fetched |
 
 ### liked_videos
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| user_id | integer | Foreign key to users |
-| video_id | text | YouTube video ID |
-| video_title | text | Video title |
-| channel_id | text | Channel ID |
-| channel_title | text | Channel name |
-| fetched_at | timestamp | When data was fetched |
+
+| Column        | Type      | Description           |
+| ------------- | --------- | --------------------- |
+| id            | integer   | Primary key           |
+| user_id       | integer   | Foreign key to users  |
+| video_id      | text      | YouTube video ID      |
+| video_title   | text      | Video title           |
+| channel_id    | text      | Channel ID            |
+| channel_title | text      | Channel name          |
+| fetched_at    | timestamp | When data was fetched |
 
 ### taste_profiles
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| user_id | integer | Foreign key to users |
-| categories | json | AI-generated categories with weights |
-| analysis_summary | text | Text summary of tastes |
-| analyzed_at | timestamp | When analysis was performed |
+
+| Column           | Type      | Description                          |
+| ---------------- | --------- | ------------------------------------ |
+| id               | integer   | Primary key                          |
+| user_id          | integer   | Foreign key to users                 |
+| categories       | json      | AI-generated categories with weights |
+| analysis_summary | text      | Text summary of tastes               |
+| analyzed_at      | timestamp | When analysis was performed          |
 
 ### recommendations
-| Column | Type | Description |
-|--------|------|-------------|
-| id | integer | Primary key |
-| user_id | integer | Foreign key to users |
-| type | text | 'channel', 'hidden_gem', or 'content_gap' |
-| channel_id | text | YouTube channel ID |
-| channel_title | text | Channel name |
-| channel_thumbnail | text | Thumbnail URL |
-| subscriber_count | integer | Subscriber count |
-| reason | text | Why this was recommended |
-| category | text | Associated category |
-| confidence_score | real | 0-1 confidence score |
-| created_at | timestamp | When recommendation was generated |
+
+| Column            | Type      | Description                               |
+| ----------------- | --------- | ----------------------------------------- |
+| id                | integer   | Primary key                               |
+| user_id           | integer   | Foreign key to users                      |
+| type              | text      | 'channel', 'hidden_gem', or 'content_gap' |
+| channel_id        | text      | YouTube channel ID                        |
+| channel_title     | text      | Channel name                              |
+| channel_thumbnail | text      | Thumbnail URL                             |
+| subscriber_count  | integer   | Subscriber count                          |
+| reason            | text      | Why this was recommended                  |
+| category          | text      | Associated category                       |
+| confidence_score  | real      | 0-1 confidence score                      |
+| created_at        | timestamp | When recommendation was generated         |
 
 ## Environment Variables
 
@@ -216,10 +224,12 @@ DATABASE_URL=file:./data/youtube-recommend.db
 ## LLM Analysis Strategy
 
 The analyzer will send a structured prompt to the LLM with:
+
 - List of subscribed channels (name, description, category hints)
 - Sample of liked videos (titles, channels)
 
 The prompt will ask the LLM to:
+
 1. Generate custom categories that describe the user's interests
 2. Weight each category by how much content falls into it
 3. Identify cross-category patterns (e.g., "educational comedy")
@@ -228,52 +238,70 @@ The prompt will ask the LLM to:
 
 ## MVP Build Order
 
-| Phase | Tasks |
-|-------|-------|
-| **1. Setup** | Init Nuxt 3, configure TypeScript, setup SQLite + Drizzle |
-| **2. Auth** | Google OAuth flow, user persistence |
-| **3. YouTube Integration** | Fetch subscriptions & liked videos via API |
-| **4. Database Layer** | Store fetched data, cache appropriately |
-| **5. LLM Integration** | Build flexible provider system (OpenAI/Anthropic/Ollama) |
-| **6. Analyzer** | Taste profiling & category generation |
-| **7. Recommendations** | Channel recs, hidden gems, content gaps endpoints |
-| **8. UI - Dashboard** | Main layout, dark theme, loading states |
-| **9. UI - Components** | ChannelCard, CategoryTag, TasteProfile |
-| **10. UI - Pages** | Dashboard, recommendation views |
-| **11. Polish** | Error handling, edge cases, responsive design |
+| Phase                      | Tasks                                                     |
+| -------------------------- | --------------------------------------------------------- |
+| **1. Setup**               | Init Nuxt 4, configure TypeScript, setup SQLite + Drizzle |
+| **2. Auth**                | Google OAuth flow, user persistence                       |
+| **3. YouTube Integration** | Fetch subscriptions & liked videos via API                |
+| **4. Database Layer**      | Store fetched data, cache appropriately                   |
+| **5. LLM Integration**     | Build flexible provider system (OpenAI/Anthropic/Ollama)  |
+| **6. Analyzer**            | Taste profiling & category generation                     |
+| **7. Recommendations**     | Channel recs, hidden gems, content gaps endpoints         |
+| **8. UI - Dashboard**      | Main layout, dark theme, loading states                   |
+| **9. UI - Components**     | ChannelCard, CategoryTag, TasteProfile                    |
+| **10. UI - Pages**         | Dashboard, recommendation views                           |
+| **11. Polish**             | Error handling, edge cases, responsive design             |
 
 ## Design Direction
 
 - **Style**: Minimal, clean (lots of whitespace)
 - **Theme**: Dark mode
-- **Components**: Rich channel cards with thumbnails, subscriber counts, category tags
+- **Components**: Rich channel cards with thumbnails, subscriber counts,
+  category tags
 
 ## Future Enhancements
 
 These are optional improvements to implement after the MVP is complete:
 
 ### High Priority
-- [x] **Add tests** - Unit tests for core services (analyzer, recommender, youtube, llm/github) using Vitest
-- [x] **Initialize git repo** - Set up git with proper .gitignore and initial commit
-- [x] **GitHub Models provider** - Default LLM provider for GitHub Copilot subscribers
+
+- [x] **Add tests** - Unit tests for core services (analyzer, recommender,
+      youtube, llm/github) using Vitest
+- [x] **Initialize git repo** - Set up git with proper .gitignore and initial
+      commit
+- [x] **GitHub Models provider** - Default LLM provider for GitHub Copilot
+      subscribers
 
 ### UX Improvements
-- [ ] **Loading skeletons** - Replace spinners with skeleton loaders for better perceived performance
-- [ ] **Error boundaries** - Add Vue error boundaries for graceful error handling
-- [ ] **Better feedback** - Toast notifications, progress indicators during LLM analysis
+
+- [ ] **Loading skeletons** - Replace spinners with skeleton loaders for better
+      perceived performance
+- [ ] **Error boundaries** - Add Vue error boundaries for graceful error
+      handling
+- [ ] **Better feedback** - Toast notifications, progress indicators during LLM
+      analysis
 
 ### Feature Enhancements
-- [ ] **Save/dismiss recommendations** - Let users save favorites or dismiss unwanted recommendations
-- [ ] **Fetch real channel data** - Use YouTube API to get actual thumbnails and subscriber counts for recommended channels
-- [ ] **Recommendation caching** - Cache recommendations with TTL to avoid regenerating on every visit
+
+- [ ] **Save/dismiss recommendations** - Let users save favorites or dismiss
+      unwanted recommendations
+- [ ] **Fetch real channel data** - Use YouTube API to get actual thumbnails and
+      subscriber counts for recommended channels
+- [ ] **Recommendation caching** - Cache recommendations with TTL to avoid
+      regenerating on every visit
 - [ ] **Pagination** - Add pagination for users with many recommendations
 
 ### LLM Providers
-- [ ] **OpenAI provider** - Implement `server/services/llm/openai.ts` (interfaces ready)
-- [ ] **Anthropic provider** - Implement `server/services/llm/anthropic.ts` (interfaces ready)
-- [ ] **Ollama provider** - Implement `server/services/llm/ollama.ts` for local LLM support
+
+- [ ] **OpenAI provider** - Implement `server/services/llm/openai.ts`
+      (interfaces ready)
+- [ ] **Anthropic provider** - Implement `server/services/llm/anthropic.ts`
+      (interfaces ready)
+- [ ] **Ollama provider** - Implement `server/services/llm/ollama.ts` for local
+      LLM support
 
 ### Phase 2 Features (from original plan)
+
 - [ ] **Natural Language Search** - "find me relaxing coding channels"
 - [ ] **Taste Profile visualization** - Visual breakdown of user interests
 - [ ] **Subscription Audit** - Identify inactive or redundant subscriptions
@@ -284,8 +312,12 @@ These are optional improvements to implement after the MVP is complete:
 ## Session Log
 
 ### 2026-02-01: Testing Foundation
+
 - Set up Vitest with `@nuxt/test-utils`, `happy-dom`, `@vue/test-utils`
-- Created test infrastructure: `vitest.config.ts`, `tests/setup.ts`, mock utilities
-- Added 106 unit tests covering: `analyzer.ts`, `recommender.ts`, `youtube.ts`, `llm/github.ts`
+- Created test infrastructure: `vitest.config.ts`, `tests/setup.ts`, mock
+  utilities
+- Added 106 unit tests covering: `analyzer.ts`, `recommender.ts`, `youtube.ts`,
+  `llm/github.ts`
 - Exported pure functions from analyzer/recommender for testability
-- **Not yet tested:** `llm/index.ts`, `server/utils/auth.ts`, API routes, composables
+- **Not yet tested:** `llm/index.ts`, `server/utils/auth.ts`, API routes,
+  composables
