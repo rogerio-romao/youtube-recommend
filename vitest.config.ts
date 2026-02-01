@@ -6,7 +6,7 @@ export default defineVitestConfig({
     setupFiles: ['./tests/setup.ts'],
 
     // Environment for tests
-    environment: 'nuxt',
+    environment: 'node',
 
     // Include patterns for test files
     include: ['tests/**/*.test.ts'],
