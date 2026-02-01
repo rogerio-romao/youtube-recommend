@@ -102,8 +102,9 @@ Requirements:
 
 /**
  * Format taste categories for the prompt
+ * @internal Exported for testing
  */
-function formatCategories(categories: TasteCategory[]): string {
+export function formatCategories(categories: TasteCategory[]): string {
   return categories
     .sort((a, b) => b.weight - a.weight)
     .map((cat) => {
@@ -118,8 +119,9 @@ function formatCategories(categories: TasteCategory[]): string {
 
 /**
  * Format existing subscriptions for exclusion
+ * @internal Exported for testing
  */
-function formatExclusions(subscriptions: string[], maxItems = 100): string {
+export function formatExclusions(subscriptions: string[], maxItems = 100): string {
   if (subscriptions.length === 0) {
     return 'None'
   }
@@ -128,8 +130,9 @@ function formatExclusions(subscriptions: string[], maxItems = 100): string {
 
 /**
  * Build the recommendations prompt
+ * @internal Exported for testing
  */
-function buildPrompt(input: RecommendationsInput): string {
+export function buildRecommendationsPrompt(input: RecommendationsInput): string {
   const categoriesText = formatCategories(input.tasteProfile.categories)
   const exclusionsText = formatExclusions(input.existingSubscriptions)
 
@@ -141,8 +144,9 @@ function buildPrompt(input: RecommendationsInput): string {
 
 /**
  * Parse and validate the LLM response
+ * @internal Exported for testing
  */
-function parseRecommendationsResponse(content: string): RecommendationsResult {
+export function parseRecommendationsResponse(content: string): RecommendationsResult {
   // Try to extract JSON from the response
   let jsonContent = content.trim()
 
@@ -236,7 +240,7 @@ export async function generateRecommendations(
     throw new Error('No taste profile available. Please analyze your tastes first.')
   }
 
-  const userPrompt = buildPrompt(input)
+  const userPrompt = buildRecommendationsPrompt(input)
 
   const messages: LLMMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },

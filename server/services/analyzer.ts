@@ -72,8 +72,9 @@ Important:
 
 /**
  * Format subscription data for the prompt
+ * @internal Exported for testing
  */
-function formatSubscriptions(subscriptions: ChannelData[], maxItems = 50): string {
+export function formatSubscriptions(subscriptions: ChannelData[], maxItems = 50): string {
   const items = subscriptions.slice(0, maxItems)
   return items
     .map((sub) => {
@@ -90,8 +91,9 @@ function formatSubscriptions(subscriptions: ChannelData[], maxItems = 50): strin
 
 /**
  * Format liked videos for the prompt
+ * @internal Exported for testing
  */
-function formatLikedVideos(videos: VideoData[], maxItems = 30): string {
+export function formatLikedVideos(videos: VideoData[], maxItems = 30): string {
   const items = videos.slice(0, maxItems)
   return items
     .map(video => `- "${video.videoTitle}" by ${video.channelTitle}`)
@@ -100,8 +102,9 @@ function formatLikedVideos(videos: VideoData[], maxItems = 30): string {
 
 /**
  * Build the analysis prompt from input data
+ * @internal Exported for testing
  */
-function buildPrompt(input: TasteAnalysisInput): string {
+export function buildAnalysisPrompt(input: TasteAnalysisInput): string {
   const subscriptionsText = formatSubscriptions(input.subscriptions)
   const likedVideosText = formatLikedVideos(input.likedVideos)
 
@@ -114,8 +117,9 @@ function buildPrompt(input: TasteAnalysisInput): string {
 
 /**
  * Parse and validate the LLM response
+ * @internal Exported for testing
  */
-function parseAnalysisResponse(content: string): TasteAnalysisResult {
+export function parseAnalysisResponse(content: string): TasteAnalysisResult {
   // Try to extract JSON from the response (handle markdown code blocks if present)
   let jsonContent = content.trim()
 
@@ -200,7 +204,7 @@ export async function analyzeTaste(input: TasteAnalysisInput): Promise<TasteAnal
     throw new Error('No YouTube data available to analyze. Please sync your YouTube data first.')
   }
 
-  const userPrompt = buildPrompt(input)
+  const userPrompt = buildAnalysisPrompt(input)
 
   const messages: LLMMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
