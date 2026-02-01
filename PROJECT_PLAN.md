@@ -12,7 +12,7 @@ A Nuxt 3 web app that analyzes your YouTube subscriptions and liked videos, uses
 | Frontend | Vue 3 (Composition API), plain CSS |
 | Database | SQLite + Drizzle ORM |
 | Auth | Google OAuth 2.0 (YouTube Data API v3) |
-| LLM | OpenAI, Anthropic, Ollama (configurable via env) |
+| LLM | GitHub Models (default), OpenAI, Anthropic, Ollama (configurable via env) |
 | Language | TypeScript |
 | Deployment | Local-first, cloud-ready |
 
@@ -60,10 +60,13 @@ youtube-recommend/
 │   │   ├── youtube.ts               # YouTube API wrapper
 │   │   ├── llm/
 │   │   │   ├── index.ts             # LLM factory
-│   │   │   ├── openai.ts
-│   │   │   ├── anthropic.ts
-│   │   │   └── ollama.ts
-│   │   └── analyzer.ts              # Taste analysis logic
+│   │   │   ├── types.ts             # LLM interfaces
+│   │   │   ├── github.ts            # GitHub Models provider (default)
+│   │   │   ├── openai.ts            # (planned)
+│   │   │   ├── anthropic.ts         # (planned)
+│   │   │   └── ollama.ts            # (planned)
+│   │   ├── analyzer.ts              # Taste analysis logic
+│   │   └── recommender.ts           # Recommendation generation
 │   └── utils/
 │       └── auth.ts
 │
@@ -93,6 +96,15 @@ youtube-recommend/
 │
 └── public/
     └── favicon.ico
+
+├── vitest.config.ts                 # Test configuration
+├── tests/
+│   ├── setup.ts                     # Global test setup
+│   ├── mocks/
+│   │   ├── llm.ts                   # LLM mock utilities
+│   │   └── youtube.ts               # YouTube mock utilities
+│   └── unit/
+│       └── services/                # Service unit tests
 ```
 
 ## Database Schema
@@ -166,6 +178,10 @@ GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback
 # LLM Provider (openai | anthropic | ollama)
 LLM_PROVIDER=openai
 
+# GitHub Models (default LLM provider)
+GITHUB_TOKEN=                        # GitHub PAT with models:read permission
+GITHUB_MODEL=openai/gpt-4o           # Optional: override default model
+
 # LLM API Keys
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
@@ -237,8 +253,9 @@ The prompt will ask the LLM to:
 These are optional improvements to implement after the MVP is complete:
 
 ### High Priority
-- [ ] **Add tests** - Unit/integration tests for services and API routes using Vitest
-- [ ] **Initialize git repo** - Set up git with proper .gitignore and initial commit
+- [x] **Add tests** - Unit tests for core services (analyzer, recommender, youtube, llm/github) using Vitest
+- [x] **Initialize git repo** - Set up git with proper .gitignore and initial commit
+- [x] **GitHub Models provider** - Default LLM provider for GitHub Copilot subscribers
 
 ### UX Improvements
 - [ ] **Loading skeletons** - Replace spinners with skeleton loaders for better perceived performance
@@ -261,3 +278,14 @@ These are optional improvements to implement after the MVP is complete:
 - [ ] **Taste Profile visualization** - Visual breakdown of user interests
 - [ ] **Subscription Audit** - Identify inactive or redundant subscriptions
 - [ ] **Trend Detection** - Identify emerging topics in user's interest areas
+
+---
+
+## Session Log
+
+### 2026-02-01: Testing Foundation
+- Set up Vitest with `@nuxt/test-utils`, `happy-dom`, `@vue/test-utils`
+- Created test infrastructure: `vitest.config.ts`, `tests/setup.ts`, mock utilities
+- Added 106 unit tests covering: `analyzer.ts`, `recommender.ts`, `youtube.ts`, `llm/github.ts`
+- Exported pure functions from analyzer/recommender for testability
+- **Not yet tested:** `llm/index.ts`, `server/utils/auth.ts`, API routes, composables
