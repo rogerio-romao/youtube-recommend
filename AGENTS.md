@@ -10,7 +10,7 @@ See `PROJECT_PLAN.md` for full architecture and implementation details.
 
 ## Tech Stack
 
-- **Framework**: Nuxt 3
+- **Framework**: Nuxt 4
 - **Frontend**: Vue 3 (Composition API), plain CSS
 - **Database**: SQLite + Drizzle ORM
 - **Auth**: Google OAuth 2.0 (YouTube Data API v3)
