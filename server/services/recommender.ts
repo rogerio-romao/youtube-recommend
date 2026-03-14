@@ -5,9 +5,9 @@
  * Uses LLM to suggest new channels, hidden gems, and content gaps.
  */
 
-import { complete } from './llm'
-import type { LLMMessage } from './llm'
 import type { TasteCategory } from '../database/schema'
+import type { LLMMessage } from './llm'
+import { complete } from './llm'
 
 export type RecommendationType = 'channel' | 'hidden_gem' | 'content_gap'
 
@@ -121,7 +121,10 @@ export function formatCategories(categories: TasteCategory[]): string {
  * Format existing subscriptions for exclusion
  * @internal Exported for testing
  */
-export function formatExclusions(subscriptions: string[], maxItems = 100): string {
+export function formatExclusions(
+  subscriptions: string[],
+  maxItems = 100,
+): string {
   if (subscriptions.length === 0) {
     return 'None'
   }
@@ -132,12 +135,16 @@ export function formatExclusions(subscriptions: string[], maxItems = 100): strin
  * Build the recommendations prompt
  * @internal Exported for testing
  */
-export function buildRecommendationsPrompt(input: RecommendationsInput): string {
+export function buildRecommendationsPrompt(
+  input: RecommendationsInput,
+): string {
   const categoriesText = formatCategories(input.tasteProfile.categories)
   const exclusionsText = formatExclusions(input.existingSubscriptions)
 
-  return USER_PROMPT_TEMPLATE
-    .replace('{{analysisSummary}}', input.tasteProfile.analysisSummary)
+  return USER_PROMPT_TEMPLATE.replace(
+    '{{analysisSummary}}',
+    input.tasteProfile.analysisSummary,
+  )
     .replace('{{categories}}', categoriesText)
     .replace('{{existingSubscriptions}}', exclusionsText)
 }
@@ -146,20 +153,23 @@ export function buildRecommendationsPrompt(input: RecommendationsInput): string 
  * Parse and validate the LLM response
  * @internal Exported for testing
  */
-export function parseRecommendationsResponse(content: string): RecommendationsResult {
+export function parseRecommendationsResponse(
+  content: string,
+): RecommendationsResult {
   // Try to extract JSON from the response
   let jsonContent = content.trim()
 
   // Remove markdown code blocks if present
   if (jsonContent.startsWith('```')) {
-    jsonContent = jsonContent.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+    jsonContent = jsonContent
+      .replace(/^```(?:json)?\n?/, '')
+      .replace(/\n?```$/, '')
   }
 
   let parsed: unknown
   try {
     parsed = JSON.parse(jsonContent)
-  }
-  catch (e) {
+  } catch (e) {
     throw new Error(`Failed to parse LLM response as JSON: ${e}`)
   }
 
@@ -193,8 +203,13 @@ export function parseRecommendationsResponse(content: string): RecommendationsRe
       continue
     }
 
-    if (typeof item.type !== 'string' || !['channel', 'hidden_gem', 'content_gap'].includes(item.type)) {
-      console.warn(`Recommendation ${index} has invalid type, defaulting to 'channel'`)
+    if (
+      typeof item.type !== 'string' ||
+      !['channel', 'hidden_gem', 'content_gap'].includes(item.type)
+    ) {
+      console.warn(
+        `Recommendation ${index} has invalid type, defaulting to 'channel'`,
+      )
       item.type = 'channel'
     }
 
@@ -214,11 +229,15 @@ export function parseRecommendationsResponse(content: string): RecommendationsRe
     recommendations.push({
       type: item.type as RecommendationType,
       channelTitle: item.channelTitle,
-      channelId: typeof item.channelId === 'string' ? item.channelId : undefined,
+      channelId:
+        typeof item.channelId === 'string' ? item.channelId : undefined,
       reason: item.reason,
       category: item.category as string,
       confidenceScore: Math.max(0, Math.min(1, item.confidenceScore as number)),
-      subscriberCount: typeof item.subscriberCount === 'number' ? item.subscriberCount : undefined,
+      subscriberCount:
+        typeof item.subscriberCount === 'number'
+          ? item.subscriberCount
+          : undefined,
     })
   }
 
@@ -236,21 +255,61 @@ export async function generateRecommendations(
   input: RecommendationsInput,
 ): Promise<RecommendationsResult> {
   // Validate input
-  if (!input.tasteProfile.categories || input.tasteProfile.categories.length === 0) {
-    throw new Error('No taste profile available. Please analyze your tastes first.')
+  if (
+    !input.tasteProfile.categories ||
+    input.tasteProfile.categories.length === 0
+  ) {
+    throw new Error(
+      'No taste profile available. Please analyze your tastes first.',
+    )
   }
 
-  const userPrompt = buildRecommendationsPrompt(input)
+  const MIN_CHANNEL = 3
+  const MIN_HIDDEN_GEM = 2
+  const MIN_CONTENT_GAP = 2
+  const MAX_RETRIES = 3
 
-  const messages: LLMMessage[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: userPrompt },
-  ]
+  let lastFiltered: RecommendationItem[] = []
+  let attempt = 0
 
-  const response = await complete(messages, {
-    temperature: 0.8, // Slightly higher for more creative recommendations
-    maxTokens: 3000,
-  })
-
-  return parseRecommendationsResponse(response.content)
+  while (attempt < MAX_RETRIES) {
+    const userPrompt = buildRecommendationsPrompt(input)
+    const messages: LLMMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userPrompt },
+    ]
+    const response = await complete(messages, {
+      temperature: 0.8, // Slightly higher for more creative recommendations
+      maxTokens: 3000,
+    })
+    const parsed = parseRecommendationsResponse(response.content)
+    // Filter out recommendations that are in the user's existing subscriptions
+    const excludeSet = new Set(
+      input.existingSubscriptions.map((s) => s.trim().toLowerCase()),
+    )
+    const filtered = parsed.recommendations.filter(
+      (r) => !excludeSet.has(r.channelTitle.trim().toLowerCase()),
+    )
+    lastFiltered = filtered
+    // Count per type
+    const channelCount = filtered.filter((r) => r.type === 'channel').length
+    const hiddenGemCount = filtered.filter(
+      (r) => r.type === 'hidden_gem',
+    ).length
+    const contentGapCount = filtered.filter(
+      (r) => r.type === 'content_gap',
+    ).length
+    if (
+      channelCount >= MIN_CHANNEL &&
+      hiddenGemCount >= MIN_HIDDEN_GEM &&
+      contentGapCount >= MIN_CONTENT_GAP
+    ) {
+      return { recommendations: filtered }
+    }
+    attempt++
+  }
+  // If we get here, we failed to get enough unique recommendations after retries
+  // Optionally, attach warning to recommendations (could also throw or log)
+  // For now, just return what we have
+  return { recommendations: lastFiltered }
 }
