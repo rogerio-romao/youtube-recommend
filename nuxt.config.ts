@@ -1,6 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   modules: ['@nuxt/eslint'],
   devtools: { enabled: true },
 
@@ -10,7 +9,9 @@ export default defineNuxtConfig({
     // Server-only keys (not exposed to client)
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    googleRedirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/callback',
+    googleRedirectUri:
+      process.env.GOOGLE_REDIRECT_URI ||
+      'http://localhost:3000/api/auth/callback',
     llmProvider: process.env.LLM_PROVIDER || 'openai',
     openaiApiKey: process.env.OPENAI_API_KEY,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
@@ -26,7 +27,7 @@ export default defineNuxtConfig({
 
   eslint: {
     config: {
-      stylistic: true,
+      stylistic: false,
     },
   },
 })
