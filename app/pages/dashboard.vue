@@ -56,6 +56,30 @@ const hasSyncedData = computed(() => youtubeData.value?.hasSyncedData ?? false)
 const hasTasteProfile = computed(() => youtubeData.value?.tasteProfile !== null)
 const tasteProfile = computed(() => youtubeData.value?.tasteProfile ?? null)
 
+// Pie chart
+const PIE_COLORS = ['#e53935', '#ff7043', '#ffd54f', '#66bb6a', '#42a5f5', '#ab47bc', '#26c6da', '#ef9a9a']
+const PIE_R = 50
+const PIE_CIRCUMFERENCE = 2 * Math.PI * PIE_R
+
+const pieSegments = computed(() => {
+  const categories = tasteProfile.value?.categories ?? []
+  let cumulativeAngle = -90
+
+  return categories.map((cat, i) => {
+    const segmentAngle = cat.weight * 360
+    const dashLength = cat.weight * PIE_CIRCUMFERENCE
+    const rotation = cumulativeAngle
+    cumulativeAngle += segmentAngle
+    return {
+      name: cat.name,
+      weight: cat.weight,
+      color: PIE_COLORS[i % PIE_COLORS.length],
+      strokeDasharray: `${dashLength} ${PIE_CIRCUMFERENCE}`,
+      rotation,
+    }
+  })
+})
+
 definePageMeta({
   title: 'Dashboard',
 })
@@ -282,6 +306,41 @@ definePageMeta({
             <p class="taste-summary">
               {{ tasteProfile.analysisSummary }}
             </p>
+
+            <div class="pie-chart-container">
+              <svg
+                viewBox="0 0 120 120"
+                class="pie-chart"
+                aria-hidden="true"
+              >
+                <circle
+                  v-for="seg in pieSegments"
+                  :key="seg.name"
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  :stroke="seg.color"
+                  stroke-width="18"
+                  :stroke-dasharray="seg.strokeDasharray"
+                  :transform="`rotate(${seg.rotation} 60 60)`"
+                />
+              </svg>
+              <div class="pie-legend">
+                <div
+                  v-for="seg in pieSegments"
+                  :key="seg.name"
+                  class="legend-item"
+                >
+                  <span
+                    class="legend-dot"
+                    :style="{ backgroundColor: seg.color }"
+                  />
+                  <span class="legend-name">{{ seg.name }}</span>
+                  <span class="legend-pct">{{ Math.round(seg.weight * 100) }}%</span>
+                </div>
+              </div>
+            </div>
 
             <div class="taste-categories">
               <div
@@ -606,5 +665,56 @@ definePageMeta({
   color: var(--color-text-secondary);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-full);
+}
+
+/* Pie Chart */
+.pie-chart-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xl);
+  margin-bottom: var(--spacing-2xl);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.pie-chart {
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 160px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.legend-pct {
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 </style>
