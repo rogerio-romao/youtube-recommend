@@ -138,6 +138,24 @@ definePageMeta({
           to="/dashboard"
           class="navbar-brand"
         >
+          <svg
+            width="22"
+            height="16"
+            viewBox="0 0 22 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              width="22"
+              height="16"
+              rx="4"
+              fill="#E53935"
+            />
+            <path
+              d="M9 4.5l7 3.5-7 3.5V4.5z"
+              fill="white"
+            />
+          </svg>
           YouTube Recommend
         </NuxtLink>
 
@@ -348,8 +366,14 @@ definePageMeta({
 .navbar-brand {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--color-text);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: linear-gradient(135deg, #ffffff 0%, #e53935 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .navbar-user {
@@ -534,8 +558,8 @@ definePageMeta({
 }
 
 .type-channel {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
+  background-color: rgba(255, 0, 0, 0.15);
+  color: #e53935;
 }
 
 .type-hidden-gem {

@@ -8,6 +8,26 @@ definePageMeta({
   <div class="landing">
     <div class="container">
       <div class="hero">
+        <div class="hero-icon">
+          <svg
+            width="48"
+            height="34"
+            viewBox="0 0 48 34"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              width="48"
+              height="34"
+              rx="8"
+              fill="#E53935"
+            />
+            <path
+              d="M19 10l16 7-16 7V10z"
+              fill="white"
+            />
+          </svg>
+        </div>
         <h1>YouTube Recommend</h1>
         <p class="hero-subtitle">
           Discover new channels based on your subscriptions and likes.
@@ -118,9 +138,15 @@ definePageMeta({
   margin: 0 auto;
 }
 
+.hero-icon {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+}
+
 .hero h1 {
   margin-bottom: var(--spacing-md);
-  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-text-secondary) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ff0000 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

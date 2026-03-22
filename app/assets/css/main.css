@@ -24,9 +24,9 @@
   --color-text-secondary: #a0a0a0;
   --color-text-muted: #6b6b6b;
 
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-muted: rgba(59, 130, 246, 0.15);
+  --color-primary: #e53935;
+  --color-primary-hover: #c62828;
+  --color-primary-muted: rgba(229, 57, 53, 0.12);
 
   --color-success: #22c55e;
   --color-warning: #f59e0b;

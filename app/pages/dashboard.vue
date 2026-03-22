@@ -69,6 +69,24 @@ definePageMeta({
           to="/dashboard"
           class="navbar-brand"
         >
+          <svg
+            width="22"
+            height="16"
+            viewBox="0 0 22 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              width="22"
+              height="16"
+              rx="4"
+              fill="#E53935"
+            />
+            <path
+              d="M9 4.5l7 3.5-7 3.5V4.5z"
+              fill="white"
+            />
+          </svg>
           YouTube Recommend
         </NuxtLink>
 
@@ -166,6 +184,12 @@ definePageMeta({
             >
               <h3>Step 1: Fetch Your Data</h3>
               <p>We'll analyze your subscriptions and liked videos to understand your tastes.</p>
+              <span
+                v-if="hasSyncedData"
+                class="action-status"
+              >
+                Data synced
+              </span>
               <button
                 class="btn btn-primary"
                 :disabled="isSyncing"
@@ -185,12 +209,6 @@ definePageMeta({
                   Fetch YouTube Data
                 </span>
               </button>
-              <span
-                v-if="hasSyncedData"
-                class="action-status"
-              >
-                Data synced
-              </span>
             </div>
 
             <div
@@ -199,6 +217,14 @@ definePageMeta({
             >
               <h3>Step 2: Analyze Tastes</h3>
               <p>Our AI will categorize your interests and create your taste profile.</p>
+              <span
+                v-if="!hasSyncedData"
+                class="coming-soon"
+              >Sync data first</span>
+              <span
+                v-else-if="hasTasteProfile"
+                class="action-status"
+              >Profile generated</span>
               <button
                 class="btn btn-primary"
                 :disabled="!hasSyncedData || isAnalyzing"
@@ -218,14 +244,6 @@ definePageMeta({
                   Analyze My Tastes
                 </span>
               </button>
-              <span
-                v-if="!hasSyncedData"
-                class="coming-soon"
-              >Sync data first</span>
-              <span
-                v-else-if="hasTasteProfile"
-                class="action-status"
-              >Profile generated</span>
             </div>
 
             <div
@@ -234,6 +252,10 @@ definePageMeta({
             >
               <h3>Step 3: Get Recommendations</h3>
               <p>Discover new channels, hidden gems, and content gaps.</p>
+              <span
+                v-if="!hasTasteProfile"
+                class="coming-soon"
+              >Analyze tastes first</span>
               <NuxtLink
                 v-if="hasTasteProfile"
                 to="/recommendations"
@@ -248,10 +270,6 @@ definePageMeta({
               >
                 View Recommendations
               </button>
-              <span
-                v-if="!hasTasteProfile"
-                class="coming-soon"
-              >Analyze tastes first</span>
             </div>
           </section>
 
@@ -328,8 +346,14 @@ definePageMeta({
 .navbar-brand {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--color-text);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: linear-gradient(135deg, #ffffff 0%, #e53935 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .navbar-user {
