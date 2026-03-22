@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     db.query.likedVideos.findMany({
       where: eq(likedVideos.userId, session.userId),
       orderBy: [desc(likedVideos.fetchedAt)],
-      limit: 100,
+      limit: 500,
     }),
     db.query.tasteProfiles.findFirst({
       where: eq(tasteProfiles.userId, session.userId),

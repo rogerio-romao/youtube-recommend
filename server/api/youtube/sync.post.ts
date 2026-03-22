@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     // Fetch data from YouTube API in parallel
     const [youtubeSubscriptions, youtubeLikedVideos] = await Promise.all([
       fetchSubscriptions(session.accessToken),
-      fetchLikedVideos(session.accessToken, 200),
+      fetchLikedVideos(session.accessToken, 500),
     ])
 
     // Clear existing data for this user
