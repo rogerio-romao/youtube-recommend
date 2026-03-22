@@ -93,8 +93,15 @@ export function useYouTube() {
         message: response.message,
       }
     }
-    catch (e) {
+    catch (e: unknown) {
       console.error('Failed to sync YouTube data:', e)
+      const status = (e as { response?: { status?: number }, statusCode?: number })?.response?.status
+        ?? (e as { statusCode?: number })?.statusCode
+      if (status === 401) {
+        error.value = 'YouTube access not granted. Please sign out and sign back in.'
+        await navigateTo('/')
+        return { success: false, message: 'YouTube access not granted. Please sign out and sign back in.' }
+      }
       error.value = 'Failed to sync YouTube data'
       return {
         success: false,

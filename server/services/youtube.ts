@@ -95,8 +95,13 @@ export async function fetchSubscriptions(accessToken: string): Promise<YouTubeCh
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Failed to fetch subscriptions: ${error}`)
+      const errorData = await response.json().catch(() => null)
+      if (errorData?.error?.details?.some((d: { reason?: string }) => d.reason === 'ACCESS_TOKEN_SCOPE_INSUFFICIENT')) {
+        const err = new Error('YouTube access not granted. Please sign in again.')
+        ;(err as Error & { code: string }).code = 'INSUFFICIENT_SCOPE'
+        throw err
+      }
+      throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(errorData)}`)
     }
 
     const data: YouTubeListResponse<YouTubeSubscriptionItem> = await response.json()
@@ -209,8 +214,13 @@ export async function fetchLikedVideos(
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Failed to fetch liked videos: ${error}`)
+      const errorData = await response.json().catch(() => null)
+      if (errorData?.error?.details?.some((d: { reason?: string }) => d.reason === 'ACCESS_TOKEN_SCOPE_INSUFFICIENT')) {
+        const err = new Error('YouTube access not granted. Please sign in again.')
+        ;(err as Error & { code: string }).code = 'INSUFFICIENT_SCOPE'
+        throw err
+      }
+      throw new Error(`Failed to fetch liked videos: ${JSON.stringify(errorData)}`)
     }
 
     const data: YouTubeListResponse<{

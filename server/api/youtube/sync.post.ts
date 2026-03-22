@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { requireAuth } from '../../utils/auth'
+import { requireAuth, deleteUserSession } from '../../utils/auth'
 import { fetchSubscriptions, fetchLikedVideos } from '../../services/youtube'
 import { db } from '../../database'
 import { subscriptions, likedVideos } from '../../database/schema'
@@ -57,6 +57,13 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (error) {
+    if ((error as Error & { code?: string }).code === 'INSUFFICIENT_SCOPE') {
+      deleteUserSession(event)
+      throw createError({
+        statusCode: 401,
+        message: 'YouTube access not granted. Please sign out and sign back in to allow YouTube access.',
+      })
+    }
     console.error('Failed to sync YouTube data:', error)
     throw createError({
       statusCode: 500,
