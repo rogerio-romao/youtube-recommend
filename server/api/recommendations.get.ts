@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
         reason: rec.reason,
         category: rec.category,
         confidenceScore: rec.confidenceScore,
+        favorited: rec.favorited,
         createdAt: rec.createdAt?.toISOString(),
       })),
       grouped,

@@ -57,6 +57,7 @@ export const recommendations = sqliteTable('recommendations', {
   reason: text('reason').notNull(),
   category: text('category').notNull(),
   confidenceScore: real('confidence_score').notNull(),
+  favorited: integer('favorited', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
 

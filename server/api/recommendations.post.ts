@@ -3,7 +3,7 @@
  *
  * Generates personalized recommendations based on user's taste profile
  */
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { requireAuth } from '../utils/auth'
 import { db } from '../database'
 import { subscriptions, tasteProfiles, recommendations } from '../database/schema'
@@ -42,7 +42,16 @@ export default defineEventHandler(async (event) => {
       .from(subscriptions)
       .where(eq(subscriptions.userId, session.userId))
 
-    const existingChannels = userSubscriptions.map(s => s.channelTitle)
+    // Fetch favorited recommendations to exclude from new generation
+    const favoritedRecommendations = await db
+      .select({ channelTitle: recommendations.channelTitle })
+      .from(recommendations)
+      .where(and(eq(recommendations.userId, session.userId), eq(recommendations.favorited, true)))
+
+    const existingChannels = [
+      ...userSubscriptions.map(s => s.channelTitle),
+      ...favoritedRecommendations.map(r => r.channelTitle),
+    ]
 
     // Generate recommendations
     const result = await generateRecommendations({
@@ -53,11 +62,13 @@ export default defineEventHandler(async (event) => {
       existingSubscriptions: existingChannels,
     })
 
-    // Delete existing recommendations for this user
-    await db.delete(recommendations).where(eq(recommendations.userId, session.userId))
+    // Delete only non-favorited recommendations for this user
+    await db.delete(recommendations).where(
+      and(eq(recommendations.userId, session.userId), eq(recommendations.favorited, false)),
+    )
 
     // Insert new recommendations
-    const newRecommendations = await db.insert(recommendations).values(
+    await db.insert(recommendations).values(
       result.recommendations.map(rec => ({
         userId: session.userId,
         type: rec.type,
@@ -68,13 +79,20 @@ export default defineEventHandler(async (event) => {
         reason: rec.reason,
         category: rec.category,
         confidenceScore: rec.confidenceScore,
+        favorited: false,
         createdAt: new Date(),
       })),
-    ).returning()
+    )
+
+    // Re-query all recommendations (favorites + new) to return complete list
+    const allRecommendations = await db
+      .select()
+      .from(recommendations)
+      .where(eq(recommendations.userId, session.userId))
 
     return {
       success: true,
-      recommendations: newRecommendations.map(rec => ({
+      recommendations: allRecommendations.map(rec => ({
         id: rec.id,
         type: rec.type,
         channelTitle: rec.channelTitle,
@@ -82,13 +100,14 @@ export default defineEventHandler(async (event) => {
         reason: rec.reason,
         category: rec.category,
         confidenceScore: rec.confidenceScore,
+        favorited: rec.favorited,
       })),
       counts: {
-        channel: result.recommendations.filter(r => r.type === 'channel').length,
-        hidden_gem: result.recommendations.filter(r => r.type === 'hidden_gem').length,
-        content_gap: result.recommendations.filter(r => r.type === 'content_gap').length,
+        channel: allRecommendations.filter(r => r.type === 'channel').length,
+        hidden_gem: allRecommendations.filter(r => r.type === 'hidden_gem').length,
+        content_gap: allRecommendations.filter(r => r.type === 'content_gap').length,
       },
-      message: `Generated ${result.recommendations.length} personalized recommendations`,
+      message: `Generated ${result.recommendations.length} new personalized recommendations`,
     }
   }
   catch (error) {

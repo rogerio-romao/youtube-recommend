@@ -7,6 +7,7 @@ interface Recommendation {
   reason: string
   category: string
   confidenceScore: number
+  favorited: boolean
   createdAt?: string
 }
 
@@ -97,6 +98,23 @@ async function generateRecommendations(): Promise<void> {
   }
   finally {
     isGenerating.value = false
+  }
+}
+
+async function toggleFavorite(rec: Recommendation): Promise<void> {
+  const newFavorited = !rec.favorited
+  rec.favorited = newFavorited // optimistic update
+
+  try {
+    await $fetch(`/api/recommendations/${rec.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: { favorited: newFavorited },
+    })
+  }
+  catch (e) {
+    rec.favorited = !newFavorited // revert on error
+    console.error('Failed to update favorite status:', e)
   }
 }
 
@@ -307,6 +325,7 @@ definePageMeta({
                 v-for="rec in filteredRecommendations"
                 :key="rec.id"
                 class="recommendation-card"
+                :class="{ favorited: rec.favorited }"
               >
                 <div class="card-header">
                   <span
@@ -324,14 +343,24 @@ definePageMeta({
                 <p class="reason">
                   {{ rec.reason }}
                 </p>
-                <a
-                  :href="getYouTubeSearchUrl(rec.channelTitle)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn btn-secondary btn-small"
-                >
-                  Find on YouTube →
-                </a>
+                <div class="card-footer">
+                  <a
+                    :href="getYouTubeSearchUrl(rec.channelTitle)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-secondary btn-small"
+                  >
+                    Find on YouTube →
+                  </a>
+                  <button
+                    class="favorite-btn"
+                    :class="{ active: rec.favorited }"
+                    :title="rec.favorited ? 'Remove from favorites' : 'Save to favorites'"
+                    @click="toggleFavorite(rec)"
+                  >
+                    {{ rec.favorited ? '★' : '☆' }}
+                  </button>
+                </div>
               </div>
             </div>
           </template>
@@ -550,6 +579,38 @@ definePageMeta({
   align-items: center;
 }
 
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+}
+
+.favorite-btn:hover {
+  color: #f59e0b;
+  transform: scale(1.15);
+}
+
+.favorite-btn.active {
+  color: #f59e0b;
+}
+
+.recommendation-card.favorited {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
 .type-badge {
   font-size: var(--font-size-xs);
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -602,8 +663,6 @@ definePageMeta({
 .btn-small {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-sm);
-  align-self: flex-start;
-  margin-top: var(--spacing-sm);
 }
 
 /* Button Loading State */

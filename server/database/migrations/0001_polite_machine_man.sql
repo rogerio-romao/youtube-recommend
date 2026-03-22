@@ -1,0 +1,1 @@
+ALTER TABLE `recommendations` ADD `favorited` integer DEFAULT false NOT NULL;
